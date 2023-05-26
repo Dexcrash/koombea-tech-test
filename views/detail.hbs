@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.3.1/dist/css/bootstrap.min.css"
+    integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+</head>
+</head>
+
+<body>
+  {{!-- Navigation links --}}
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <a class="navbar-brand" href="/">Node MySQL Login</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
+      aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarText">
+      <ul class="navbar-nav mr-auto">
+        <li class="nav-item active">
+          <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/login">Login</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/signup">Register</a>
+        </li>
+      </ul>
+      <span class="navbar-text">
+        Navbar text with an inline element
+      </span>
+    </div>
+  </nav>
+
+  {{!-- Body --}}
+  <div class="container mt-4">
+
+    <div class="my-1">
+      <button class="btn btn-primary" type="submit" id="backButton" class="text-center">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+        <span>Back</span>
+      </button>
+    </div>
+
+    <div class="p-3 bg-primary text-white rounded">
+      <h2 id="detailTitle" class="text-center"></h2>
+    </div>
+
+    <table class="table">
+      <thead class="thead-dark">
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Link</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <th scope="row">1</th>
+          <td>Example page</td>
+          <td>123</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <nav aria-label="...">
+      <ul class="pagination">
+        <li class="page-item disabled">
+          <a class="page-link" tabindex="-1">Previous</a>
+        </li>
+        <li class="page-item"><a class="page-link">1</a></li>
+        <li class="page-item active">
+          <a class="page-link">2 <span class="sr-only">(current)</span></a>
+        </li>
+        <li class="page-item"><a class="page-link">3</a></li>
+        <li class="page-item">
+          <a class="page-link">Next</a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</body>
+<script>
+  function fetchScrapedDetail(page) {
+    console.log('Fetching...')
+    const limit = 10;
+    const id = "{{scrapedId}}";
+    return fetch(`/scraper/${id}?page=${page}&limit=${limit}`)
+      .then(response => response.json())
+      .then(data => data)
+      .catch(error => {
+        console.error('Error fetching data:', error);
+      });
+  }
+
+  function setPagination(totalResults, currentPage) {
+    const pagination = document.querySelector('.pagination');
+
+    // Remove the existing page items
+    pagination.innerHTML = '';
+
+    const totalPages = Math.ceil(totalResults / 10);
+    const maxDisplayedPages = 10;
+    const displayedPages = Math.min(maxDisplayedPages, totalPages);
+
+    let startPage = currentPage - Math.floor(displayedPages / 2);
+    startPage = Math.max(startPage, 1);
+    const endPage = startPage + displayedPages - 1;
+    startPage = Math.max(startPage, endPage - displayedPages + 1);
+
+    // Create previous button
+    const previousButton = document.createElement('li');
+    previousButton.classList.add('page-item');
+    if (currentPage === 1) {
+      previousButton.classList.add('disabled');
+    }
+    const previousLink = document.createElement('a');
+    previousLink.classList.add('page-link');
+    previousLink.textContent = 'Previous';
+    previousButton.appendChild(previousLink);
+    pagination.appendChild(previousButton);
+
+    // Add click event listener to previous button
+    previousLink.addEventListener('click', () => {
+      const previousPage = currentPage - 1;
+      if (previousPage >= 1) {
+        setScrapedDetail(previousPage);
+      }
+    });
+
+    // Create page items
+    for (let i = startPage; i <= endPage; i++) {
+      const pageItem = document.createElement('li');
+      pageItem.classList.add('page-item');
+
+      const pageLink = document.createElement('a');
+      pageLink.classList.add('page-link');
+      pageLink.textContent = i;
+
+      if (i === currentPage) {
+        pageItem.classList.add('active');
+      }
+
+      pageItem.appendChild(pageLink);
+      pagination.appendChild(pageItem);
+
+      // Add click event listener to page item
+      pageLink.addEventListener('click', () => {
+        setScrapedDetail(i);
+      });
+    }
+
+    // Create next button
+    const nextButton = document.createElement('li');
+    nextButton.classList.add('page-item');
+    if (currentPage === totalPages) {
+      nextButton.classList.add('disabled');
+    }
+    const nextLink = document.createElement('a');
+    nextLink.classList.add('page-link');
+    nextLink.textContent = 'Next';
+    nextButton.appendChild(nextLink);
+    pagination.appendChild(nextButton);
+
+    // Add click event listener to next button
+    nextLink.addEventListener('click', () => {
+      const nextPage = currentPage + 1;
+      if (nextPage <= totalPages) {
+        setScrapedDetail(nextPage);
+      }
+    });
+  }
+
+
+  async function setScrapedDetail(page) {
+    try {
+      // Fetch the scraped pages data
+      const data = await fetchScrapedDetail(page);
+
+      // Set the title
+      const detailTitle = document.getElementById('detailTitle');
+      detailTitle.innerHTML = data.title;
+      // Access the table element
+      const table = document.querySelector('.table tbody');
+      // Clear the table body
+      table.innerHTML = '';
+
+      // Iterate over the results and populate the table rows
+      data.results.forEach(result => {
+        const row = document.createElement('tr');
+
+        // Create and append table cells for name and total links
+        const nameCell = document.createElement('td');
+        nameCell.textContent = result.name;
+        row.appendChild(nameCell);
+
+        const totalLinksCell = document.createElement('td');
+        totalLinksCell.textContent = result.url;
+        row.appendChild(totalLinksCell);
+
+        // Append the row to the table body
+        table.appendChild(row);
+      });
+
+    // Set the pagination
+    setPagination(data.totalResults, page);
+    } catch (error) {
+      console.error('Error initializing:', error);
+    }
+  }
+
+  async function initialization() {
+    const page = 1;
+    try {
+      // Add click event listener to the back button
+      const backButton = document.getElementById('backButton');
+      backButton.addEventListener('click', () => {
+        // Redirect to the home page
+        window.location.href = `/`;
+      });
+      await setScrapedDetail(page);
+    } catch (error) {
+      console.error('Error initializing:', error);
+    }
+  }
+
+
+  // Call the initialization function
+  initialization();
+</script>
+
+
+</html>
