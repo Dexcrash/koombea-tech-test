@@ -5,36 +5,36 @@ import {
   Post,
   Query,
   Param,
-  ValidationPipe,
+  ParseIntPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ScraperService } from './scraper.service';
-import { QueryScrapingResultDto } from '../utils/QueryPaginationDto';
+import { AuthenticatedGuard } from 'src/auth/authenticated.guard';
 
 @Controller('scraper')
 export class ScraperController {
   constructor(private readonly scraperService: ScraperService) {}
 
+  @UseGuards(AuthenticatedGuard)
   @Get()
   getScrapingResults(
-    @Query(new ValidationPipe({ transform: true }))
-    query: QueryScrapingResultDto,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
   ) {
-    return this.scraperService.getScrapingResults(query.page, query.limit);
+    return this.scraperService.getScrapingResults(page, limit);
   }
 
+  @UseGuards(AuthenticatedGuard)
   @Get('/:id')
   async getUrlsByScrapingResultUrl(
-    @Query(new ValidationPipe({ transform: true }))
-    query: QueryScrapingResultDto,
+    @Query('page', ParseIntPipe) page = 1,
+    @Query('limit', ParseIntPipe) limit = 10,
     @Param('id') id: string,
   ) {
-    return this.scraperService.getUrlsByScrapingResultUrl(
-      id,
-      query.page,
-      query.limit,
-    );
+    return this.scraperService.getUrlsByScrapingResultUrl(id, page, limit);
   }
 
+  @UseGuards(AuthenticatedGuard)
   @Post('/scrape')
   async scrape(@Body('url') url: string) {
     try {
